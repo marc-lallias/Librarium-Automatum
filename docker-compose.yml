@@ -1,0 +1,66 @@
+###############################################################################
+# LLM Stack – AnythingLLM + Ollama
+#
+# Custom models:
+#   1. Edit files in ./ollama/modelfiles/ on the host
+#   2. Run:  docker exec ollama ollama create <name> -f /modelfiles/<file>
+#   No image rebuild needed.
+###############################################################################
+
+services:
+  # ---------------------------------------------------------------------------
+  # Ollama – LLM inference server
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest          # use upstream; no custom build needed
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-data:/root/.ollama                 # model weights & runtime data
+      - ./ollama/modelfiles:/modelfiles:ro        # ← edit on host, use in container
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - llm-network
+    Uncomment for NVIDIA GPU support:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ---------------------------------------------------------------------------
+  # AnythingLLM – chat / RAG frontend
+  # ---------------------------------------------------------------------------
+  anythingllm:
+    image: mintplexlabs/anythingllm:latest   # use upstream
+    container_name: anythingllm
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    ports:
+      - "${ALLM_PORT:-3001}:3001"
+    cap_add:
+      - SYS_ADMIN
+    env_file:
+      - .env                                 # shared defaults
+      - ./anythingllm/.env                   # app-specific overrides (optional)
+    volumes:
+      - anythingllm-data:/app/server/storage
+    networks:
+      - llm-network
+
+# ---------------------------------------------------------------------------
+# Networking & volumes
+# ---------------------------------------------------------------------------
+networks:
+  llm-network:
+    driver: bridge
+
+volumes:
+  ollama-data:
+  anythingllm-data:

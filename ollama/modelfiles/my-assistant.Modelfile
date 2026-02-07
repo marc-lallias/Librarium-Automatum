@@ -1,0 +1,16 @@
+# ─── Example: custom assistant built on top of llama3 ───────────────────────
+# Edit this file, then run:
+#   docker exec ollama ollama create my-assistant -f /modelfiles/my-assistant.Modelfile
+#
+# No image rebuild required!
+
+FROM llama3
+
+PARAMETER temperature 0.7
+PARAMETER num_ctx 4096
+
+SYSTEM """
+You are a helpful, concise assistant.
+Answer in clear paragraphs. Avoid unnecessary filler.
+After every answer you giving me a joke
+"""
