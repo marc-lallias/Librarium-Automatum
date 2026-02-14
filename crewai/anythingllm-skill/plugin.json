@@ -1,0 +1,46 @@
+{
+  "name": "crewai-research",
+  "version": "1.0.0",
+  "description": "Sends a research topic to a CrewAI multi-agent crew (researcher + writer) and returns a polished article.",
+  "author": "You",
+  "author_url": "",
+  "license": "MIT",
+  "setup_args": {
+    "CREWAI_API_URL": {
+      "type": "string",
+      "required": true,
+      "input": {
+        "type": "text",
+        "default": "http://crewai-service:8000",
+        "placeholder": "http://crewai-service:8000",
+        "hint": "The base URL of your CrewAI service"
+      }
+    },
+    "RESEARCH_DEPTH": {
+      "type": "string",
+      "required": false,
+      "input": {
+        "type": "text",
+        "default": "medium",
+        "placeholder": "brief | medium | deep",
+        "hint": "How deep should the research go"
+      }
+    }
+  },
+  "examples": [
+    {
+      "prompt": "Research the latest developments in quantum computing",
+      "call": "{\"topic\": \"latest developments in quantum computing\"}"
+    },
+    {
+      "prompt": "Write me a research article about renewable energy trends",
+      "call": "{\"topic\": \"renewable energy trends in 2025\"}"
+    },
+    {
+      "prompt": "Do a deep dive on the impact of AI on healthcare",
+      "call": "{\"topic\": \"impact of AI on healthcare\"}"
+    }
+  ],
+  "entrypoint": "handler.js",
+  "imported": true
+}
