@@ -24,7 +24,7 @@ services:
       - OLLAMA_HOST=0.0.0.0
     networks:
       - llm-network
-    Uncomment for NVIDIA GPU support:
+
     deploy:
       resources:
         reservations:
