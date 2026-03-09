@@ -1,12 +1,3 @@
-###############################################################################
-# LLM Stack – AnythingLLM + Ollama
-#
-# Custom models:
-#   1. Edit files in ./ollama/modelfiles/ on the host
-#   2. Run:  docker exec ollama ollama create <name> -f /modelfiles/<file>
-#   No image rebuild needed.
-###############################################################################
-
 services:
   # ---------------------------------------------------------------------------
   # Ollama – LLM inference server
@@ -34,24 +25,52 @@ services:
               capabilities: [gpu]
 
   # ---------------------------------------------------------------------------
-  # AnythingLLM – chat / RAG frontend
+  # MongoDB – LibreChat database
   # ---------------------------------------------------------------------------
-  anythingllm:
-    image: mintplexlabs/anythingllm:latest   # use upstream
-    container_name: anythingllm
+  mongodb:
+    image: mongo:7-jammy
+    container_name: chat-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - llm-network
+
+  # ---------------------------------------------------------------------------
+  # Meilisearch – full-text search for LibreChat conversations
+  # create user npm run create-user -- marc.lallias@icloud.com marc mlallias --email-verified=false llkkazllkkaz
+  # ---------------------------------------------------------------------------
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: chat-meilisearch
+    restart: unless-stopped
+    env_file:
+      - ./libreChat/.env
+    volumes:
+      - meilisearch-data:/meili_data
+    networks:
+      - llm-network
+
+  # ---------------------------------------------------------------------------
+  # LibreChat – chat / RAG frontend
+  # ---------------------------------------------------------------------------
+  librechat:
+    image: ghcr.io/danny-avila/librechat:latest
+    container_name: LibreChat
     restart: unless-stopped
     depends_on:
+      - mongodb
+      - meilisearch
       - ollama
     ports:
-      - "${ALLM_PORT:-3001}:3001"
-    cap_add:
-      - SYS_ADMIN
+      - "${LIBRECHAT_PORT:-3080}:3080"
     env_file:
       - .env                                 # shared defaults
-      - ./anythingllm/.env                   # app-specific overrides (optional)
+      - ./libreChat/.env                     # app-specific overrides
     volumes:
-      - anythingllm-data:/app/server/storage
-      - ./crewai/anythingllm-skill/:/app/server/storage/plugins/agent-skills/crewai-skill/:ro
+      - ./libreChat/librechat.yaml:/app/librechat.yaml:ro
+      - librechat-uploads:/app/client/public/images
+      - librechat-logs:/app/api/logs
     networks:
       - llm-network
 
@@ -122,6 +141,7 @@ networks:
 volumes:
   ollama-data:
   anythingllm-data:
-  qdrant_data:
-  crew_outputs:
-  rewai-src:
+  mongodb-data:
+  meilisearch-data:
+  librechat-uploads:
+  librechat-logs:

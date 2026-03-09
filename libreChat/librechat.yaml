@@ -1,0 +1,33 @@
+# LibreChat configuration
+# Docs: https://www.librechat.ai/docs/configuration/librechat_yaml
+version: 1.2.1
+
+# ---------------------------------------------------------------------------
+# Custom endpoints
+# ---------------------------------------------------------------------------
+endpoints:
+  custom:
+    # ── Ollama (OpenAI-compatible API) ──────────────────────────────────────
+    - name: "Ollama"
+      apiKey: "ollama"                       # ignored by Ollama, but required
+      baseURL: "http://ollama:11434/v1"      # container-to-container
+      models:
+        default:
+          - "llama3"
+          - "mistral"
+        fetch: true                          # auto-discover models from Ollama
+      titleConvo: true
+      titleModel: "llama3"
+      summarize: false
+      forcePrompt: false
+      modelDisplayLabel: "Ollama"
+
+# ---------------------------------------------------------------------------
+# File handling
+# ---------------------------------------------------------------------------
+fileConfig:
+  endpoints:
+    default:
+      fileLimit: 5
+      fileSizeLimit: 10                      # MB per file
+      totalSizeLimit: 50                     # MB per request
